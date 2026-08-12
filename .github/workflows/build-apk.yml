@@ -3,6 +3,7 @@ name: Build APK
 on:
   workflow_dispatch:
   push:
+    branches: [ main ]
 
 jobs:
   build:
@@ -18,15 +19,24 @@ jobs:
       - uses: android-actions/setup-android@v3
 
       - name: Build
+        shell: bash
         run: |
-          unzip -q FramePilot-GitHub-Build.zip
-          cd FramePilotFixed
+          set -euo pipefail
+          unzip -q FramePilot-GitHub-Build.zip -d source
+          cd source/FramePilotFixed
+
+          printf '%s\n' \
+            'android.useAndroidX=true' \
+            'android.enableJetifier=true' \
+            > gradle.properties
+
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
           curl -fsSL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o gradle.zip
           unzip -q gradle.zip -d "$RUNNER_TEMP"
-          "$RUNNER_TEMP/gradle-8.7/bin/gradle" :app:assembleDebug --no-daemon
+          "$RUNNER_TEMP/gradle-8.7/bin/gradle" :app:assembleDebug --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: FramePilot-APK
-          path: FramePilotFixed/app/build/outputs/apk/debug/app-debug.apk
+          path: source/FramePilotFixed/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
