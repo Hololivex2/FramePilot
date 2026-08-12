@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -29,6 +29,16 @@ jobs:
             'android.useAndroidX=true' \
             'android.enableJetifier=true' \
             > gradle.properties
+
+          printf '%s\n' \
+            '' \
+            'android {' \
+            '    compileOptions {' \
+            '        sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17' \
+            '        targetCompatibility = org.gradle.api.JavaVersion.VERSION_17' \
+            '    }' \
+            '}' \
+            >> app/build.gradle.kts
 
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
           curl -fsSL https://services.gradle.org/distributions/gradle-8.7-bin.zip -o gradle.zip
